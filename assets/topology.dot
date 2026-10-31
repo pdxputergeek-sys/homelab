@@ -1,0 +1,55 @@
+// Homelab network topology — Graphviz source for assets/topology.svg.
+// Edit this file and re-render with: dot -Tsvg topology.dot -o topology.svg
+digraph homelab {
+  rankdir=TB;
+  compound=true;
+  label="Homelab Network";
+  labelloc="t";
+  fontsize=20;
+  fontname="Helvetica";
+  node [fontname="Helvetica", fontsize=11, shape=box, style="rounded,filled", fillcolor=white];
+  edge [fontname="Helvetica", fontsize=10];
+
+  internet [label="Internet", shape=ellipse, fillcolor="#e8e8e8"];
+
+  erx [label="EdgeRouter X\n192.168.0.1\nRouter / firewall", fillcolor="#fbd5b5"];
+
+  subgraph cluster_lan {
+    label="LAN — 192.168.0.0/24";
+    style="rounded,filled";
+    fillcolor="#dbeafe";
+    ap [label="UniFi APs (x2)\n192.168.0.2–.3\nWireless"];
+    pihole [label="Pi-hole LXC\n192.168.0.4\nDNS + DHCP"];
+    unifi [label="UniFi Controller VM\n192.168.0.5\nWi-Fi management (11443)"];
+    printer [label="Printer\n192.168.0.6\nSamsung network printer"];
+    tailscale [label="Tailscale (tssr01)\n192.168.0.7\nRemote access, subnet router"];
+    iventoy [label="iVentoy VM (103)\n192.168.0.8\nPXE boot server"];
+    monitor [label="Monitor Pi\n192.168.0.9\nNetwork monitoring host"];
+    nas [label="QNAP TS-653D\n192.168.0.10\nNAS"];
+    pve [label="Proxmox cluster\n192.168.0.31–.33\npve1 / pve2 / pve3"];
+    {rank=same; ap; pihole; unifi}
+    {rank=same; printer; tailscale; iventoy}
+    {rank=same; monitor; nas; pve}
+    ap -> pihole [style=invis];
+    pihole -> unifi [style=invis];
+    printer -> tailscale [style=invis];
+    tailscale -> iventoy [style=invis];
+    monitor -> nas [style=invis];
+    nas -> pve [style=invis];
+    unifi -> printer [style=invis];
+    iventoy -> monitor [style=invis];
+  }
+
+  subgraph cluster_iot {
+    label="VLAN 10 — IoT\n192.168.10.0/24 (gateway .1)";
+    style="rounded,filled";
+    fillcolor="#fef3c7";
+    iotwifi [label="IoT Wi-Fi\nClient isolation"];
+    iotdev [label="IoT devices"];
+  }
+
+  internet -> erx;
+  erx -> ap [lhead=cluster_lan];
+  erx -> iotwifi [lhead=cluster_iot];
+  iotwifi -> iotdev;
+}

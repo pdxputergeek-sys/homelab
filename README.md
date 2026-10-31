@@ -10,22 +10,9 @@ It also doubles as the practice ground for my cert path (Linux+ → RHCE → CCN
 
 LAN is `192.168.0.0/24`, with DNS and DHCP on a Pi-hole LXC.
 
-```mermaid
-flowchart TB
-    Internet --> ERX["EdgeRouter X — 192.168.0.1"]
-    ERX --- LAN["LAN — 192.168.0.0/24"]
-    LAN --- APs["UniFi APs — .2, .3"]
-    LAN --- PVE["Proxmox cluster — .31–.33"]
-    LAN --- DNS["Pi-hole (DNS + DHCP) — .4"]
-    LAN --- UC["UniFi Controller VM — .5"]
-    LAN --- NAS["QNAP TS-653D — .10"]
-    LAN --- MON["Monitor Pi — .9"]
-    LAN --- TS["Tailscale — .7"]
-    LAN --- PXE["iVentoy (PXE) — .8"]
-    LAN --- PRN["Printer — .6"]
-    ERX --- IOT["VLAN 10 — IoT network"]
-    IOT --- IOTW["IoT Wi-Fi (client isolation)"]
-```
+![Homelab network topology](assets/topology.svg)
+
+Diagram source: [assets/topology.dot](assets/topology.dot) (Graphviz).
 
 | Device | IP | Role |
 | --- | --- | --- |
@@ -94,6 +81,15 @@ Four Raspberry Pi 4 (4 GB), each with a SATA SSD over USB:
 An isolated study network (`10.20.0.0/24`) pinned to pve1, built for
 CompTIA Linux+ study: Debian, Ubuntu, and Rocky VMs with their own DHCP/DNS,
 reachable from the LAN via SSH ProxyJump — nothing to clean up on teardown.
+
+## Scripts
+
+- [pve-rolling-upgrade.sh](scripts/pve-rolling-upgrade.sh) — rolling
+  Proxmox VE upgrade helper: one node at a time, with quorum, Ceph health,
+  HA evacuation, and survivor-node health gates before any reboot.
+  Dry-run by default; `--apply` asks for explicit YES. Tailored to this
+  3-node PVE 9 + Ceph cluster — adapt `NODES` and `EXPECTED_PVE_MAJOR`
+  before running it elsewhere.
 
 ## In progress / planned
 
